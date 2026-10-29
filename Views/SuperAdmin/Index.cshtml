@@ -1,0 +1,248 @@
+@{
+    ViewData["Title"] = "SuperAdmin Dashboard";
+}
+
+<div class="container-fluid py-4">
+
+    <!-- Dashboard Header -->
+    <div class="mb-4">
+        <h1 class="fw-bold">SuperAdmin Dashboard</h1>
+        <p class="text-muted">
+            Manage Staybnb users, host applications, roles and system activity.
+        </p>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
+
+        <!-- Users -->
+        <div class="col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1">Total Users</p>
+                            <h2 class="fw-bold mb-0">@ViewBag.TotalUsers</h2>
+                        </div>
+
+                        <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                            <span class="fs-3">👥</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Host Applications -->
+        <div class="col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1">Host Applications</p>
+                            <h2 class="fw-bold mb-0">@ViewBag.TotalHostApplications</h2>
+                        </div>
+
+                        <div class="bg-warning bg-opacity-10 rounded-circle p-3">
+                            <span class="fs-3">🏠</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Properties -->
+        <div class="col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1">Properties</p>
+                            <h2 class="fw-bold mb-0">@ViewBag.TotalProperties</h2>
+                        </div>
+
+                        <div class="bg-success bg-opacity-10 rounded-circle p-3">
+                            <span class="fs-3">🏘️</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Logs -->
+        <div class="col-md-6 col-xl-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1">Activity Logs</p>
+                            <h2 class="fw-bold mb-0">@ViewBag.TotalActivityLogs</h2>
+                        </div>
+
+                        <div class="bg-danger bg-opacity-10 rounded-circle p-3">
+                            <span class="fs-3">📋</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- Administration Options -->
+    <div class="row g-4">
+
+        <!-- User Management -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+
+                    <div class="mb-3">
+                        <span class="fs-1">👥</span>
+                    </div>
+
+                    <h4 class="fw-bold">Manage Users</h4>
+
+                    <p class="text-muted">
+                        View registered users and manage their administrative roles.
+                    </p>
+
+                    <a href="#"
+                       class="btn btn-primary">
+                        Manage Users
+                    </a>
+
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Host Applications -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+
+                    <div class="mb-3">
+                        <span class="fs-1">🏠</span>
+                    </div>
+
+                    <h4 class="fw-bold">Host Applications</h4>
+
+                    <p class="text-muted">
+                        Review applications submitted by users who want to become hosts.
+                    </p>
+
+                    <a href="#"
+                       class="btn btn-warning">
+                        Review Applications
+                    </a>
+
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Role Management -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+
+                    <div class="mb-3">
+                        <span class="fs-1">🔐</span>
+                    </div>
+
+                    <h4 class="fw-bold">Role Management</h4>
+
+                    <p class="text-muted">
+                        Promote eligible users to Admin. SuperAdmin access is required.
+                    </p>
+
+                    <a href="#"
+                       class="btn btn-dark">
+                        Manage Roles
+                    </a>
+
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Activity Logs -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+
+                    <div class="mb-3">
+                        <span class="fs-1">📋</span>
+                    </div>
+
+                    <h4 class="fw-bold">Activity Logs</h4>
+
+                    <p class="text-muted">
+                        Review important system actions such as logins, role changes and booking updates.
+                    </p>
+
+                    <a href="#"
+                       class="btn btn-secondary">
+                        View Activity
+                    </a>
+
+                </div>
+            </div>
+        </div>
+
+
+        <!-- System Settings -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+
+                    <div class="mb-3">
+                        <span class="fs-1">⚙️</span>
+                    </div>
+
+                    <h4 class="fw-bold">System Settings</h4>
+
+                    <p class="text-muted">
+                        Manage administrative configuration for the Staybnb platform.
+                    </p>
+
+                    <a href="#"
+                       class="btn btn-outline-dark">
+                        Settings
+                    </a>
+
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Back to Home -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+
+                    <div class="mb-3">
+                        <span class="fs-1">🏡</span>
+                    </div>
+
+                    <h4 class="fw-bold">Staybnb Home</h4>
+
+                    <p class="text-muted">
+                        Return to the main Staybnb website.
+                    </p>
+
+                    <a asp-controller="Home"
+                       asp-action="Index"
+                       class="btn btn-outline-primary">
+                        Back to Home
+                    </a>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>

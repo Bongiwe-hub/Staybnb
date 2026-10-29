@@ -1,0 +1,283 @@
+
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Staybnb.Data;
+using Staybnb.Models;
+
+namespace Staybnb.Controllers
+{
+    // Only authenticated users in the Guest role may access this controller.
+    [Authorize(Roles = "Guest")]
+    public class GuestDocumentController : Controller
+    {
+        private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _environment;
+        private readonly ILogger<GuestDocumentController> _logger;
+
+        private const long MaxFileSize = 5 * 1024 * 1024;
+
+        public GuestDocumentController(
+            ApplicationDbContext context,
+            IWebHostEnvironment environment,
+            ILogger<GuestDocumentController> logger)
+        {
+            _context = context;
+            _environment = environment;
+            _logger = logger;
+        }
+
+        // ============================================================
+        // VIEW MY DOCUMENTS
+        // ============================================================
+
+        [HttpGet]
+        public async Task<IActionResult> MyDocuments()
+        {
+            string? guestId =
+                User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrWhiteSpace(guestId))
+            {
+                return Challenge();
+            }
+
+            // Only retrieve documents belonging to the current Guest.
+            var documents = await _context.GuestDocuments
+                .Include(d => d.Booking)
+                    .ThenInclude(b => b!.Property)
+                .Where(d => d.GuestId == guestId)
+                .OrderByDescending(d => d.UploadedAt)
+                .ToListAsync();
+
+            return View(documents);
+        }
+
+        // ============================================================
+        // UPLOAD A DOCUMENT
+        // Only for the current Guest's approved bookings.
+        // ============================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(6 * 1024 * 1024)]
+        public async Task<IActionResult> Upload(
+            int bookingId,
+            IFormFile? document)
+        {
+            string? guestId =
+                User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrWhiteSpace(guestId))
+            {
+                return Challenge();
+            }
+
+            if (bookingId <= 0)
+            {
+                return BadRequest("Invalid booking.");
+            }
+
+            if (document == null || document.Length == 0)
+            {
+                TempData["Error"] =
+                    "Please select a document to upload.";
+
+                return RedirectToAction(
+                    "MyCheckInInstructions", "Booking");
+            }
+
+            // Enforce the file size limit.
+            if (document.Length > MaxFileSize)
+            {
+                TempData["Error"] =
+                    "The document must be no larger than 5 MB.";
+
+                return RedirectToAction(
+                    "MyCheckInInstructions", "Booking");
+            }
+
+            // Confirm that this booking belongs to this Guest and is approved.
+            var booking = await _context.Bookings
+                .FirstOrDefaultAsync(b =>
+                    b.BookingId == bookingId &&
+                    b.GuestId == guestId &&
+                    b.Status == "Approved");
+
+            if (booking == null)
+            {
+                return NotFound();
+            }
+
+            // Check the extension.
+            string extension =
+                Path.GetExtension(document.FileName)
+                    .ToLowerInvariant();
+
+            string[] allowedExtensions =
+            {
+                ".pdf", ".jpg", ".jpeg", ".png"
+            };
+
+            if (!allowedExtensions.Contains(extension))
+            {
+                TempData["Error"] =
+                    "Only PDF, JPG, JPEG, and PNG files are allowed.";
+
+                return RedirectToAction(
+                    "MyCheckInInstructions", "Booking");
+            }
+
+            // Check the file signature as an additional safeguard.
+            // Extensions and MIME types alone can be spoofed.
+            if (!await HasValidFileSignatureAsync(document, extension))
+            {
+                TempData["Error"] =
+                    "The file content does not match its file type.";
+
+                return RedirectToAction(
+                    "MyCheckInInstructions", "Booking");
+            }
+
+            // Store files outside wwwroot so they are not publicly served
+            // as static files.
+            string uploadFolder = Path.Combine(
+                _environment.ContentRootPath,
+                "PrivateUploads",
+                "GuestDocuments");
+
+            Directory.CreateDirectory(uploadFolder);
+
+            // Never use the supplied filename as the physical filename.
+            string savedFileName =
+                $"{Guid.NewGuid():N}{extension}";
+
+            string fullPath =
+                Path.Combine(uploadFolder, savedFileName);
+
+            try
+            {
+                // Save the file to private storage.
+                await using (var stream = new FileStream(
+                    fullPath,
+                    FileMode.CreateNew,
+                    FileAccess.Write,
+                    FileShare.None))
+                {
+                    await document.CopyToAsync(stream);
+                }
+
+                // Store a relative path, not an absolute server path.
+                var guestDocument = new GuestDocument
+                {
+                    BookingId = booking.BookingId,
+                    GuestId = guestId,
+                    FileName = Path.GetFileName(document.FileName),
+                    FilePath = Path.Combine(
+                        "PrivateUploads",
+                        "GuestDocuments",
+                        savedFileName),
+                    UploadedAt = DateTime.UtcNow,
+                    IsVerified = false
+                };
+
+                _context.GuestDocuments.Add(guestDocument);
+
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                // Prevent orphaned files if saving the database record fails.
+                _logger.LogError(
+                    ex,
+                    "Failed to save a guest document for booking {BookingId}.",
+                    bookingId);
+
+                if (System.IO.File.Exists(fullPath))
+                {
+                    try
+                    {
+                        System.IO.File.Delete(fullPath);
+                    }
+                    catch (IOException cleanupException)
+                    {
+                        _logger.LogError(
+                            cleanupException,
+                            "Could not remove an incomplete guest document.");
+                    }
+                    catch (UnauthorizedAccessException cleanupException)
+                    {
+                        _logger.LogError(
+                            cleanupException,
+                            "Permission denied while removing an incomplete guest document.");
+                    }
+                }
+
+                TempData["Error"] =
+                    "The document could not be uploaded. Please try again.";
+
+                return RedirectToAction(
+                    "MyCheckInInstructions", "Booking");
+            }
+
+            TempData["Success"] =
+                "Your document was uploaded and is awaiting host verification.";
+
+            return RedirectToAction(
+                "MyCheckInInstructions", "Booking");
+        }
+
+        // ============================================================
+        // FILE SIGNATURE VALIDATION
+        // ============================================================
+
+        private static async Task<bool> HasValidFileSignatureAsync(
+            IFormFile file,
+            string extension)
+        {
+            // Read only the bytes needed to check the signature.
+            byte[] header = new byte[8];
+
+            await using var stream = file.OpenReadStream();
+
+            int bytesRead = await stream.ReadAsync(
+                header.AsMemory(0, header.Length));
+
+            // PDF: %PDF-
+            if (extension == ".pdf")
+            {
+                return bytesRead >= 5 &&
+                    header[0] == 0x25 &&
+                    header[1] == 0x50 &&
+                    header[2] == 0x44 &&
+                    header[3] == 0x46 &&
+                    header[4] == 0x2D;
+            }
+
+            // JPEG: FF D8 FF
+            if (extension == ".jpg" || extension == ".jpeg")
+            {
+                return bytesRead >= 3 &&
+                    header[0] == 0xFF &&
+                    header[1] == 0xD8 &&
+                    header[2] == 0xFF;
+            }
+
+            // PNG: 89 50 4E 47 0D 0A 1A 0A
+            if (extension == ".png")
+            {
+                byte[] pngSignature =
+                {
+                    0x89, 0x50, 0x4E, 0x47,
+                    0x0D, 0x0A, 0x1A, 0x0A
+                };
+
+                return bytesRead >= pngSignature.Length &&
+                    header.SequenceEqual(pngSignature);
+            }
+
+            return false;
+        }
+    }
+}

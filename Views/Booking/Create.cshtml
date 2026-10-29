@@ -1,0 +1,104 @@
+
+@model Staybnb.Models.Property
+
+@{
+    ViewData["Title"] = "Book Property";
+}
+
+<div class="container py-5">
+    <div class="mb-4">
+        <a asp-controller="Home"
+           asp-action="Details"
+           asp-route-id="@Model.PropertyId"
+           class="btn btn-outline-secondary">
+            &larr; Back to Property
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+
+                    <h1 class="h3 fw-bold mb-3">Book Your Stay</h1>
+
+                    <h4>@Model.Title</h4>
+
+                    <p class="text-muted">
+                        @Model.City, South Africa
+                    </p>
+
+                    <hr />
+
+                    <h5>Property Details</h5>
+
+                    <p>
+                        <strong>Property Type:</strong>
+                        @Model.PropertyType
+                    </p>
+
+                    <p>
+                        <strong>Price per night:</strong>
+                        R @Model.PricePerNight.ToString("N2")
+                    </p>
+
+                    <hr />
+
+                    <form asp-controller="Booking"
+                          asp-action="Confirm"
+                          method="post">
+
+                        <input type="hidden"
+                               name="PropertyId"
+                               value="@Model.PropertyId" />
+
+                        <div class="mb-3">
+                            <label for="checkIn" class="form-label">
+                                Check-in Date
+                            </label>
+
+                            <input type="date"
+                                   id="checkIn"
+                                   name="CheckIn"
+                                   class="form-control"
+                                   required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="checkOut" class="form-label">
+                                Check-out Date
+                            </label>
+
+                            <input type="date"
+                                   id="checkOut"
+                                   name="CheckOut"
+                                   class="form-control"
+                                   required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="guests" class="form-label">
+                                Number of Guests
+                            </label>
+
+                            <input type="number"
+                                   id="guests"
+                                   name="Guests"
+                                   class="form-control"
+                                   min="1"
+                                   value="1"
+                                   required />
+                        </div>
+
+                        <button type="submit"
+                                class="btn btn-primary w-100">
+                            Continue Booking
+                        </button>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

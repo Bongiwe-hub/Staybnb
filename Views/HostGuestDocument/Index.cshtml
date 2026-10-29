@@ -1,0 +1,112 @@
+
+@model IEnumerable<Staybnb.Models.GuestDocument>
+
+@{
+    ViewData["Title"] = "Guest Documents";
+}
+
+<div class="container mt-4">
+    <h2>Guest Documents</h2>
+
+    <p class="text-muted">
+        Review documents uploaded by guests for their bookings.
+    </p>
+
+    @if (TempData["DocumentMessage"] != null)
+    {
+        <div class="alert alert-info">
+            @TempData["DocumentMessage"]
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-secondary">
+            No guest documents have been uploaded yet.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered align-middle">
+                <thead>
+                    <tr>
+                        <th>Document</th>
+                        <th>Guest</th>
+                        <th>Property</th>
+                        <th>Booking ID</th>
+                        <th>Uploaded</th>
+                        <th>Verification</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var document in Model)
+                    {
+                        <tr>
+                            <td>@document.FileName</td>
+
+                            <td>
+                                @(document.Guest?.Email ?? "Unknown guest")
+                            </td>
+
+                            <td>
+                                @(document.Booking?.Property?.Title
+                                    ?? "Unknown property")
+                            </td>
+
+                            <td>@document.BookingId</td>
+
+                            <td>
+                                @document.UploadedAt.ToLocalTime()
+                                    .ToString("dd MMM yyyy HH:mm")
+                            </td>
+
+                            <td>
+                                @if (document.IsVerified)
+                                {
+                                    <span class="badge bg-success">
+                                        Verified
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        Awaiting verification
+                                    </span>
+                                }
+                            </td>
+
+                            <td>
+                                <a asp-controller="HostGuestDocuments"
+                                   asp-action="Download"
+                                   asp-route-id="@document.GuestDocumentId"
+                                   class="btn btn-primary btn-sm">
+                                    Download
+                                </a>
+
+                                @if (!document.IsVerified)
+                                {
+                                    <form asp-controller="HostGuestDocuments"
+                                          asp-action="Verify"
+                                          asp-route-id="@document.GuestDocumentId"
+                                          method="post"
+                                          class="d-inline">
+                                        @Html.AntiForgeryToken()
+
+                                        <button type="submit"
+                                                class="btn btn-success btn-sm"
+                                                onclick="return confirm('Have you checked this document and confirmed it is valid?');">
+                                            Verify
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

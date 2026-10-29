@@ -1,0 +1,95 @@
+
+@model IEnumerable<Staybnb.Models.Message>
+
+@{
+    ViewData["Title"] = "Conversation";
+
+    // Get the ID of the other person in this conversation.
+    var otherUserId = ViewBag.OtherUserId as string;
+}
+
+<div class="container mt-4">
+    <h1>Conversation</h1>
+
+    <p class="text-muted">
+        Conversation with user: @otherUserId
+    </p>
+
+    <a asp-controller="Messages"
+       asp-action="Index"
+       class="btn btn-outline-secondary mb-3">
+        Back to Inbox
+    </a>
+
+    <!-- Display the messages exchanged between the two users. -->
+    <div class="card mb-4">
+        <div class="card-body">
+            @if (!Model.Any())
+            {
+                <p>No messages in this conversation yet.</p>
+            }
+            else
+            {
+                @foreach (var message in Model)
+                {
+                    <div class="border rounded p-3 mb-3">
+                        <p class="mb-1">
+                            <strong>
+                                @(message.SenderId == otherUserId
+                                    ? "Other user"
+                                    : "You")
+                            </strong>
+                        </p>
+
+                        <p class="mb-1">@message.Content</p>
+
+                        <small class="text-muted">
+                            @message.SentAt.ToLocalTime()
+                                .ToString("dd MMM yyyy, HH:mm")
+                        </small>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <!-- Form for replying to the other user. -->
+    @if (!string.IsNullOrWhiteSpace(otherUserId))
+    {
+        <div class="card">
+            <div class="card-header">
+                Reply
+            </div>
+
+            <div class="card-body">
+                <form asp-controller="Messages"
+                      asp-action="Send"
+                      method="post">
+
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden"
+                           name="receiverId"
+                           value="@otherUserId" />
+
+                    <div class="mb-3">
+                        <label for="content" class="form-label">
+                            Your message
+                        </label>
+
+                        <textarea id="content"
+                                  name="content"
+                                  class="form-control"
+                                  rows="4"
+                                  maxlength="2000"
+                                  required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        Send Reply
+                    </button>
+                </form>
+            </div>
+        </div>
+    }
+</div>

@@ -1,0 +1,222 @@
+
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Staybnb.Data;
+using Staybnb.Models;
+
+namespace Staybnb.Controllers
+{
+    [Authorize(Roles = "Admin,SuperAdmin")]
+    public class AdminController : Controller
+    {
+        private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
+
+        public AdminController(
+            ApplicationDbContext context,
+            UserManager<ApplicationUser> userManager)
+        {
+            _context = context;
+            _userManager = userManager;
+        }
+
+        // TEMPORARY TEST:
+        // Opens /admin-test without requiring an Admin login.
+        // This helps us determine whether the controller route works.
+        [AllowAnonymous]
+        [HttpGet("/admin-test")]
+        public IActionResult TestRoute()
+        {
+            return Content("AdminController routing works!");
+        }
+
+        // GET: /Admin/Index
+        // Displays host applications awaiting review.
+        public async Task<IActionResult> Index()
+        {
+            var applications = await _context.HostApplications
+                .Include(application => application.Applicant)
+                .OrderByDescending(application => application.SubmittedAt)
+                .ToListAsync();
+
+            return View(applications);
+        }
+
+        // POST: /Admin/Approve
+        // Approves a pending application and promotes the applicant to Host.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Approve(int id)
+        {
+            var application = await _context.HostApplications
+                .Include(application => application.Applicant)
+                .FirstOrDefaultAsync(application =>
+                    application.HostApplicationId == id);
+
+            if (application == null)
+            {
+                TempData["Error"] = "Host application not found.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (application.Status != "Pending")
+            {
+                TempData["Error"] =
+                    "Only pending applications can be approved.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var applicant = application.Applicant;
+
+            if (applicant == null)
+            {
+                TempData["Error"] =
+                    "The applicant's account could not be found.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var applicationImages = await _context.HostApplicationImages
+                .Where(image =>
+                    image.HostApplicationId == application.HostApplicationId)
+                .ToListAsync();
+
+            if (applicationImages.Count == 0)
+            {
+                TempData["Error"] =
+                    "This application cannot be approved because it has no property images.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (!await _userManager.IsInRoleAsync(applicant, "Guest"))
+            {
+                TempData["Error"] =
+                    "Only users with the Guest role can be approved as Hosts.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var removeGuestResult = await _userManager
+                .RemoveFromRoleAsync(applicant, "Guest");
+
+            if (!removeGuestResult.Succeeded)
+            {
+                TempData["Error"] =
+                    "The Guest role could not be removed.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var addHostResult = await _userManager
+                .AddToRoleAsync(applicant, "Host");
+
+            if (!addHostResult.Succeeded)
+            {
+                await _userManager.AddToRoleAsync(applicant, "Guest");
+
+                TempData["Error"] =
+                    "The Host role could not be assigned.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                var property = new Property
+                {
+                    Title = application.Title,
+                    Description = application.Description,
+                    PricePerNight = application.PricePerNight,
+                    Address = application.Address,
+                    City = application.City,
+                    PropertyType = application.PropertyType,
+                    HostId = applicant.Id,
+                    IsActive = true
+                };
+
+                _context.Properties.Add(property);
+                await _context.SaveChangesAsync();
+
+                foreach (var applicationImage in applicationImages)
+                {
+                    _context.PropertyImages.Add(new PropertyImage
+                    {
+                        PropertyId = property.PropertyId,
+                        ImageUrl = applicationImage.ImageUrl
+                    });
+                }
+
+                application.Status = "Approved";
+                application.ReviewedAt = DateTime.UtcNow;
+                application.ReviewedById =
+                    _userManager.GetUserId(User);
+                application.ReviewComment =
+                    "Application approved successfully.";
+
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] =
+                    $"{applicant.FirstName} {applicant.LastName} has been approved as a Host.";
+            }
+            catch
+            {
+                _context.Properties.RemoveRange(
+                    _context.Properties.Where(property =>
+                        property.HostId == applicant.Id &&
+                        property.Title == application.Title &&
+                        property.Address == application.Address));
+
+                await _context.SaveChangesAsync();
+
+                await _userManager.RemoveFromRoleAsync(applicant, "Host");
+                await _userManager.AddToRoleAsync(applicant, "Guest");
+
+                TempData["Error"] =
+                    "The application could not be fully approved. Please check the application and try again.";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        // POST: /Admin/Reject
+        // Rejects a pending host application.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Reject(
+            int id,
+            string? reviewComment)
+        {
+            var application = await _context.HostApplications
+                .FirstOrDefaultAsync(application =>
+                    application.HostApplicationId == id);
+
+            if (application == null)
+            {
+                TempData["Error"] = "Host application not found.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (application.Status != "Pending")
+            {
+                TempData["Error"] =
+                    "Only pending applications can be rejected.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            application.Status = "Rejected";
+            application.ReviewedAt = DateTime.UtcNow;
+            application.ReviewedById =
+                _userManager.GetUserId(User);
+
+            application.ReviewComment =
+                string.IsNullOrWhiteSpace(reviewComment)
+                    ? "Application rejected."
+                    : reviewComment.Trim();
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] =
+                "The Host Application has been rejected.";
+
+            return RedirectToAction(nameof(Index));
+        }
+    }
+}

@@ -1,0 +1,308 @@
+@using Staybnb.Models
+@using System.Collections.Generic
+
+@model List<Staybnb.Models.Booking>
+
+@{
+    ViewData["Title"] = "Manage Check-In";
+
+    var processes =
+        ViewBag.CheckInProcesses as Dictionary<int, CheckInProcess>;
+}
+
+<div class="container py-5">
+
+    <!-- Page heading -->
+    <div class="mb-4">
+        <h1 class="display-6 fw-bold">Manage Check-In</h1>
+        <p class="text-muted">
+            Set instructions and access codes for your approved guests.
+            Mark check-in as completed when the guest has checked in.
+        </p>
+    </div>
+
+    <!-- Success and error messages -->
+    @if (TempData["CheckInMessage"] != null)
+    {
+        <div class="alert alert-info alert-dismissible fade show"
+             role="alert">
+
+            @TempData["CheckInMessage"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Close">
+            </button>
+        </div>
+    }
+
+    <!-- No approved bookings -->
+    @if (Model == null || !Model.Any())
+    {
+        <div class="card shadow-sm border-0">
+            <div class="card-body text-center py-5">
+
+                <h4>No approved bookings yet</h4>
+
+                <p class="text-muted mb-4">
+                    Once a guest's booking is approved, you can
+                    configure their check-in instructions here.
+                </p>
+
+                <a asp-controller="Host"
+                   asp-action="Bookings"
+                   class="btn btn-primary">
+                    Manage Bookings
+                </a>
+
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Display each approved booking -->
+        <div class="row g-4">
+
+            @foreach (var booking in Model)
+            {
+                CheckInProcess? process = null;
+
+                if (processes != null)
+                {
+                    processes.TryGetValue(
+                        booking.BookingId,
+                        out process);
+                }
+
+                <div class="col-12">
+                    <div class="card shadow-sm border-0">
+
+                        <div class="card-body p-4">
+
+                            <!-- Guest and property details -->
+                            <div class="d-flex flex-column
+                                        flex-md-row
+                                        justify-content-between
+                                        gap-3 mb-4">
+
+                                <div>
+                                    <h4 class="fw-bold mb-1">
+                                        @(booking.Property?.Title
+                                            ?? "Property")
+                                    </h4>
+
+                                    <p class="text-muted mb-1">
+                                        Booking reference:
+                                        <strong>
+                                            #@booking.BookingId
+                                        </strong>
+                                    </p>
+
+                                    <p class="mb-1">
+                                        Guest:
+                                        @(booking.Guest?.UserName
+                                            ?? booking.GuestId)
+                                    </p>
+
+                                    <p class="mb-0">
+                                        Guests: @booking.Guests
+                                    </p>
+                                </div>
+
+                                <div class="text-md-end">
+                                    <span class="badge bg-success">
+                                        @booking.Status
+                                    </span>
+
+                                    <p class="mt-2 mb-1">
+                                        <strong>Check-in:</strong>
+                                        @booking.CheckInDate.ToString(
+                                            "dd MMM yyyy")
+                                    </p>
+
+                                    <p class="mb-0">
+                                        <strong>Check-out:</strong>
+                                        @booking.CheckOutDate.ToString(
+                                            "dd MMM yyyy")
+                                    </p>
+                                </div>
+
+                            </div>
+
+                            <hr />
+
+                            <!-- Save instructions and access code -->
+                            <h5 class="fw-bold mb-3">
+                                Check-In Instructions
+                            </h5>
+
+                            <form asp-controller="Host"
+                                  asp-action="SaveCheckIn"
+                                  method="post">
+
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden"
+                                       name="bookingId"
+                                       value="@booking.BookingId" />
+
+                                <!-- Instructions -->
+                                <div class="mb-3">
+
+                                    <label for="instructions-@booking.BookingId"
+                                           class="form-label fw-semibold">
+                                        Instructions for the guest
+                                    </label>
+
+                                    <textarea
+                                        id="instructions-@booking.BookingId"
+                                        name="instructions"
+                                        class="form-control"
+                                        rows="4"
+                                        maxlength="2000"
+                                        required
+                                        placeholder="Explain how the guest can access the property, collect the keys, and enter the accommodation.">@(process?.Instructions ?? "")</textarea>
+
+                                    <small class="text-muted">
+                                        Maximum 2,000 characters.
+                                    </small>
+
+                                </div>
+
+                                <!-- Access code -->
+                                <div class="mb-3">
+
+                                    <label for="accessCode-@booking.BookingId"
+                                           class="form-label fw-semibold">
+                                        Door or access code
+                                    </label>
+
+                                    <input
+                                        type="password"
+                                        id="accessCode-@booking.BookingId"
+                                        name="accessCode"
+                                        class="form-control"
+                                        maxlength="100"
+                                        autocomplete="new-password"
+                                        placeholder="Enter access code (optional)" />
+
+                                    <small class="text-muted">
+                                        Leave blank to clear any saved
+                                        access code. Enter the code again
+                                        if you want to save or update it.
+                                    </small>
+
+                                </div>
+
+                                <button type="submit"
+                                        class="btn btn-primary">
+                                    Save Check-In Settings
+                                </button>
+
+                            </form>
+
+                            <!--
+                                IMPORTANT:
+                                The completion form is outside the
+                                SaveCheckIn form. HTML forms must not
+                                be nested inside one another.
+                            -->
+
+                            <hr class="my-4" />
+
+                            <!-- Completion status -->
+                            <div class="d-flex flex-column
+                                        flex-md-row
+                                        justify-content-between
+                                        align-items-md-center
+                                        gap-3">
+
+                                <div>
+                                    <h5 class="fw-bold mb-2">
+                                        Check-In Status
+                                    </h5>
+
+                                    @if (process == null)
+                                    {
+                                        <span class="badge bg-secondary">
+                                            Not configured
+                                        </span>
+
+                                        <p class="text-muted small mt-2 mb-0">
+                                            Save the check-in settings first
+                                            to enable completion.
+                                        </p>
+                                    }
+                                    else if (process.IsCompleted)
+                                    {
+                                        <span class="badge bg-success">
+                                            Completed
+                                        </span>
+
+                                        @if (process.CompletedAt.HasValue)
+                                        {
+                                            <p class="text-muted small mt-2 mb-0">
+                                                Completed on:
+                                                @process.CompletedAt.Value
+                                                    .ToLocalTime()
+                                                    .ToString(
+                                                        "dd MMM yyyy HH:mm")
+                                            </p>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            Not completed
+                                        </span>
+
+                                        <p class="text-muted small mt-2 mb-0">
+                                            Mark this once the guest
+                                            has checked in.
+                                        </p>
+                                    }
+                                </div>
+
+                                <!-- Separate completion form -->
+                                @if (process != null &&
+                                     !process.IsCompleted)
+                                {
+                                    <form asp-controller="Host"
+                                          asp-action="CompleteCheckIn"
+                                          method="post"
+                                          onsubmit="return confirm('Are you sure you want to mark this guest check-in as completed?');">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <input type="hidden"
+                                               name="bookingId"
+                                               value="@booking.BookingId" />
+
+                                        <button type="submit"
+                                                class="btn btn-success">
+                                            Mark Check-In as Completed
+                                        </button>
+
+                                    </form>
+                                }
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            }
+
+        </div>
+    }
+
+    <!-- Return to host dashboard -->
+    <div class="mt-4">
+        <a asp-controller="Host"
+           asp-action="Index"
+           class="btn btn-outline-secondary">
+            Back to Host Dashboard
+        </a>
+    </div>
+

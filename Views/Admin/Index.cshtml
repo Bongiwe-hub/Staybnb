@@ -1,0 +1,226 @@
+
+@model IEnumerable<Staybnb.Models.HostApplication>
+
+@{
+    ViewData["Title"] = "Review Host Applications";
+}
+
+<div class="container mt-4 mb-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold">Host Applications</h2>
+            <p class="text-muted">
+                Review and manage requests to become a Staybnb Host.
+            </p>
+        </div>
+
+        <a asp-controller="Home"
+           asp-action="Index"
+           class="btn btn-outline-secondary">
+            Back to Home
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show"
+             role="alert">
+            @TempData["Success"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show"
+             role="alert">
+            @TempData["Error"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-bold">Submitted Applications</h5>
+        </div>
+
+        <div class="card-body">
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle">
+
+                        <thead class="table-light">
+                            <tr>
+                                <th>Property</th>
+                                <th>Applicant</th>
+                                <th>Location</th>
+                                <th>Price Per Night</th>
+                                <th>Submitted</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var application in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@application.Title</strong>
+
+                                        <div class="small text-muted">
+                                            @application.PropertyType
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <div>
+                                            @application.Applicant?.FirstName
+                                            @application.Applicant?.LastName
+                                        </div>
+
+                                        <div class="small text-muted">
+                                            @application.Applicant?.Email
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        @application.Address
+
+                                        <div class="small text-muted">
+                                            @application.City
+                                        </div>
+                                    </td>
+
+                                    <td class="text-nowrap">
+                                        R @application.PricePerNight.ToString("N2")
+                                    </td>
+
+                                    <td>
+    @application.SubmittedAt.ToLocalTime().ToString("dd MMM yyyy")
+</td>
+
+                                    <td>
+                                        @if (application.Status == "Pending")
+                                        {
+                                            <span class="badge bg-warning text-dark">
+                                                Pending
+                                            </span>
+                                        }
+                                        else if (application.Status == "Approved")
+                                        {
+                                            <span class="badge bg-success">
+                                                Approved
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">
+                                                Rejected
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @if (application.Status == "Pending")
+                                        {
+                                            <div class="d-flex flex-column gap-2">
+
+                                                <!-- Approve application -->
+                                                <form asp-controller="Admin"
+                                                      asp-action="Approve"
+                                                      method="post">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <input type="hidden"
+                                                           name="id"
+                                                           value="@application.HostApplicationId" />
+
+                                                    <button type="submit"
+                                                            class="btn btn-success btn-sm w-100"
+                                                            onclick="return confirm('Approve this Host Application?');">
+                                                        Approve
+                                                    </button>
+
+                                                </form>
+
+                                                <!-- Reject application -->
+                                                <form asp-controller="Admin"
+                                                      asp-action="Reject"
+                                                      method="post">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <input type="hidden"
+                                                           name="id"
+                                                           value="@application.HostApplicationId" />
+
+                                                    <input type="text"
+                                                           name="reviewComment"
+                                                           class="form-control form-control-sm mb-2"
+                                                           placeholder="Reason for rejection"
+                                                           maxlength="500" />
+
+                                                    <button type="submit"
+                                                            class="btn btn-outline-danger btn-sm w-100"
+                                                            onclick="return confirm('Reject this Host Application?');">
+                                                        Reject
+                                                    </button>
+
+                                                </form>
+
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Reviewed
+                                            </span>
+
+                                            @if (!string.IsNullOrWhiteSpace(application.ReviewComment))
+                                            {
+                                                <div class="small text-muted mt-1">
+                                                    @application.ReviewComment
+                                                </div>
+                                            }
+                                        }
+                                    </td>
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <h5>No Host Applications Found</h5>
+
+                    <p class="text-muted">
+                        New applications will appear here when Guests
+                        apply to become Hosts.
+                    </p>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>

@@ -1,0 +1,238 @@
+@model IEnumerable<Staybnb.Models.Booking>
+
+@{
+    ViewData["Title"] = "My Bookings";
+}
+
+<div class="container py-5">
+
+    <!-- Page heading -->
+    <div class="d-flex flex-column flex-md-row
+                justify-content-between align-items-md-center gap-3 mb-4">
+
+        <div>
+            <h1 class="fw-bold">My Bookings</h1>
+            <p class="text-muted mb-0">
+                View your reservations and track their status.
+            </p>
+        </div>
+
+        <a asp-controller="Home"
+           asp-action="Index"
+           class="btn btn-outline-primary">
+            Browse Properties
+        </a>
+    </div>
+
+    <!-- Booking feedback messages -->
+    @if (TempData["BookingMessage"] != null)
+    {
+        <div class="alert alert-info alert-dismissible fade show"
+             role="alert">
+
+            @TempData["BookingMessage"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Close">
+            </button>
+        </div>
+    }
+
+    <!-- Empty booking list -->
+    @if (Model == null || !Model.Any())
+    {
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+
+                <h4 class="fw-bold">No bookings yet</h4>
+
+                <p class="text-muted">
+                    You have not made any bookings yet.
+                    Explore our available properties to get started.
+                </p>
+
+                <a asp-controller="Home"
+                   asp-action="Index"
+                   class="btn btn-primary">
+                    Discover Properties
+                </a>
+
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Booking cards -->
+        <div class="row g-4">
+
+            @foreach (var booking in Model)
+            {
+                <div class="col-12 col-md-6 col-xl-4">
+
+                    <div class="card border-0 shadow-sm h-100">
+
+                        <div class="card-body p-4">
+
+                            <!-- Property title -->
+                            <h4 class="fw-bold mb-2">
+                                @(booking.Property?.Title ?? "Property")
+                            </h4>
+
+                            <!-- Booking status -->
+                            <div class="mb-3">
+
+                                @switch (booking.Status)
+                                {
+                                    case "Pending":
+                                        <span class="badge bg-warning text-dark">
+                                            Pending
+                                        </span>
+                                        break;
+
+                                    case "Approved":
+                                        <span class="badge bg-success">
+                                            Approved
+                                        </span>
+                                        break;
+
+                                    case "Rejected":
+                                        <span class="badge bg-danger">
+                                            Rejected
+                                        </span>
+                                        break;
+
+                                    case "Cancelled":
+                                        <span class="badge bg-secondary">
+                                            Cancelled
+                                        </span>
+                                        break;
+
+                                    default:
+                                        <span class="badge bg-secondary">
+                                            @booking.Status
+                                        </span>
+                                        break;
+                                }
+
+                            </div>
+
+                            <hr />
+
+                            <!-- Booking information -->
+                            <p>
+                                <strong>Booking reference:</strong>
+                                #@booking.BookingId
+                            </p>
+
+                            <p>
+                                <strong>Check-in:</strong>
+                                @booking.CheckInDate.ToString("dd MMM yyyy")
+                            </p>
+
+                            <p>
+                                <strong>Check-out:</strong>
+                                @booking.CheckOutDate.ToString("dd MMM yyyy")
+                            </p>
+
+                            <p>
+                                <strong>Guests:</strong>
+                                @booking.Guests
+                            </p>
+
+                            <p>
+                                <strong>Nights:</strong>
+                                @booking.Nights
+                            </p>
+
+                            <p>
+                                <strong>Price per night:</strong>
+                                R @booking.PricePerNight.ToString("N2")
+                            </p>
+
+                            <p>
+                                <strong>Cleaning fee:</strong>
+                                R @booking.CleaningFee.ToString("N2")
+                            </p>
+
+                            <p>
+                                <strong>Service fee:</strong>
+                                R @booking.ServiceFee.ToString("N2")
+                            </p>
+
+                            <h5 class="fw-bold mt-3">
+                                Total: R @booking.TotalPrice.ToString("N2")
+                            </h5>
+
+                            
+         
+<small class="text-muted">
+    Booked on: @booking.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")
+</small>
+
+
+@if (booking.Status == "Approved")
+{
+    <a asp-controller="Booking"
+       asp-action="MyCheckInInstructions"
+       class="btn btn-outline-primary w-100 mb-2">
+        View Check-In Instructions
+    </a>
+}
+
+@{
+    var reviewedBookingIds =
+        ViewBag.ReviewedBookingIds as List<int>
+        ?? new List<int>();
+
+    bool hasReviewed =
+        reviewedBookingIds.Contains(booking.BookingId);
+
+    bool checkoutHasPassed =
+        booking.CheckOutDate.Date < DateTime.Today;
+}
+
+@if (booking.Status == "Approved"
+    && checkoutHasPassed
+    && !hasReviewed)
+{
+    <a asp-controller="Review"
+       asp-action="Create"
+       asp-route-bookingId="@booking.BookingId"
+       class="btn btn-success w-100 mb-2">
+        Write a Review
+    </a>
+}
+
+
+                            
+
+                            <!-- Only pending bookings can be cancelled -->
+                            @if (booking.Status == "Pending")
+                            {
+                                <form asp-controller="Booking"
+                                      asp-action="Cancel"
+                                      asp-route-id="@booking.BookingId"
+                                      method="post"
+                                      onsubmit="return confirm('Are you sure you want to cancel this booking?');">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <button type="submit"
+                                            class="btn btn-outline-danger w-100">
+                                        Cancel Booking
+                                    </button>
+
+                                </form>
+                            }
+
+                        </div>
+                    </div>
+                </div>
+            }
+
+        </div>
+    }
+
+</div>

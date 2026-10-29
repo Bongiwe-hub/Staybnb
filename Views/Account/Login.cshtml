@@ -1,0 +1,111 @@
+@{
+    ViewData["Title"] = "Login";
+    var returnUrl = ViewData["ReturnUrl"] as string;
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+
+            <div class="card shadow border-0">
+                <div class="card-body p-5">
+
+                    <!-- Page heading -->
+                    <div class="text-center mb-4">
+                        <h2 class="fw-bold">Welcome Back</h2>
+                        <p class="text-muted">
+                            Login to your Staybnb account
+                        </p>
+                    </div>
+
+                    <!-- Validation messages -->
+                    <div asp-validation-summary="All"
+                         class="text-danger mb-3">
+                    </div>
+
+                    <!-- Login form -->
+                    <form asp-controller="Account"
+                          asp-action="Login"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               name="returnUrl"
+                               value="@returnUrl" />
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label for="email"
+                                   class="form-label">
+                                Email Address
+                            </label>
+
+                            <input type="email"
+                                   id="email"
+                                   name="email"
+                                   class="form-control"
+                                   placeholder="Enter your email"
+                                   required />
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-4">
+                            <label for="password"
+                                   class="form-label">
+                                Password
+                            </label>
+
+                            <input type="password"
+                                   id="password"
+                                   name="password"
+                                   class="form-control"
+                                   placeholder="Enter your password"
+                                   required />
+                        </div>
+
+                        <!-- Remember me -->
+                        <div class="form-check mb-4">
+                            <input type="checkbox"
+                                   class="form-check-input"
+                                   id="rememberMe"
+                                   name="rememberMe"
+                                   value="true" />
+
+                            <label class="form-check-label"
+                                   for="rememberMe">
+                                Remember me
+                            </label>
+                        </div>
+
+                        <!-- Login button -->
+                        <div class="d-grid">
+                            <button type="submit"
+                                    class="btn btn-primary btn-lg">
+                                Login
+                            </button>
+                        </div>
+
+                    </form>
+
+                    <!-- Registration link -->
+                    <div class="text-center mt-4">
+                        <p class="mb-0">
+                            Don't have an account?
+                            <a asp-controller="Account"
+                               asp-action="Register">
+                                Create an account
+                            </a>
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

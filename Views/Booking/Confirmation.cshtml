@@ -1,0 +1,131 @@
+ @{
+    ViewData["Title"] = "Booking Confirmation";
+
+    string status = ViewBag.Status?.ToString() ?? "Pending";
+
+    string statusClass = status switch
+    {
+        "Approved" => "bg-success",
+        "Rejected" => "bg-danger",
+        "Cancelled" => "bg-secondary",
+        "Pending" => "bg-warning text-dark",
+        _ => "bg-secondary"
+    };
+
+    string statusMessage = status switch
+    {
+        "Approved" => "Your booking has been approved! You can view your booking details and check-in instructions in My Bookings.",
+        "Rejected" => "Unfortunately, your booking request was rejected. You can browse other available properties.",
+        "Cancelled" => "This booking has been cancelled.",
+        _ => "Your booking request has been saved and is awaiting host review. This is not yet a confirmed reservation, and no payment has been processed."
+    };
+
+    decimal totalPrice = 0m;
+
+    if (ViewBag.TotalPrice != null)
+    {
+        decimal.TryParse(
+            ViewBag.TotalPrice.ToString(),
+            System.Globalization.NumberStyles.Any,
+            System.Globalization.CultureInfo.InvariantCulture,
+            out totalPrice
+        );
+    }
+}
+
+<div class="container py-5">
+    <div class="card shadow-sm mx-auto" style="max-width: 650px;">
+        <div class="card-body p-4">
+
+            <!-- Confirmation heading -->
+            <div class="text-center mb-4">
+                <div class="mb-3">
+                    <span class="text-success" style="font-size: 3rem;">
+                        &#10003;
+                    </span>
+                </div>
+
+                <h1 class="text-success fw-bold">
+                    Booking Request Saved!
+                </h1>
+
+                <p class="text-muted">
+                    Your booking details are displayed below.
+                </p>
+            </div>
+
+            <hr />
+
+            <!-- Booking details -->
+            <div class="text-start">
+
+                <p>
+                    <strong>Booking Reference:</strong>
+                    #@(ViewBag.BookingId ?? "N/A")
+                </p>
+
+                <p>
+                    <strong>Property:</strong>
+                    @(ViewBag.PropertyTitle ?? "Property")
+                </p>
+
+                <p>
+                    <strong>Check-in:</strong>
+                    @(ViewBag.CheckIn ?? "N/A")
+                </p>
+
+                <p>
+                    <strong>Check-out:</strong>
+                    @(ViewBag.CheckOut ?? "N/A")
+                </p>
+
+                <p>
+                    <strong>Guests:</strong>
+                    @(ViewBag.Guests ?? "N/A")
+                </p>
+
+                <p>
+                    <strong>Number of nights:</strong>
+                    @(ViewBag.Nights ?? "N/A")
+                </p>
+
+                <p>
+                    <strong>Status:</strong>
+                    <span class="badge @statusClass">
+                        @status
+                    </span>
+                </p>
+
+                <hr />
+
+                <h4 class="mt-3 fw-bold">
+                    Total: R @totalPrice.ToString("N2")
+                </h4>
+
+            </div>
+
+            <!-- Message based on the current booking status -->
+            <div class="alert alert-info mt-4" role="status">
+                @statusMessage
+            </div>
+
+            <!-- Navigation buttons -->
+            <div class="d-grid gap-2">
+
+                <a asp-controller="Booking"
+                   asp-action="MyBookings"
+                   class="btn btn-primary">
+                    View My Bookings
+                </a>
+
+                <a asp-controller="Home"
+                   asp-action="Index"
+                   class="btn btn-outline-secondary">
+                    Browse Properties
+                </a>
+
+            </div>
+
+        </div>
+    </div>
+</div>

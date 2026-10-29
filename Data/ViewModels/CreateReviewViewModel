@@ -1,0 +1,21 @@
+
+using System.ComponentModel.DataAnnotations;
+
+namespace Staybnb.ViewModels
+{
+    public class CreateReviewViewModel
+    {
+        // Identifies the booking being reviewed.
+        [Required]
+        public int BookingId { get; set; }
+
+        // The guest must choose a rating from 1 to 5.
+        [Required]
+        [Range(1, 5, ErrorMessage = "Please select a rating from 1 to 5.")]
+        public int Rating { get; set; }
+
+        // A written comment is optional, but limited to 2,000 characters.
+        [StringLength(2000, ErrorMessage = "Your comment cannot exceed 2,000 characters.")]
+        public string? Comment { get; set; }
+    }
+}

@@ -1,0 +1,127 @@
+
+@model List<Staybnb.Models.Property>
+
+@{
+    ViewData["Title"] = "My Properties";
+}
+
+<div class="container py-5">
+
+    <!-- Page heading -->
+    <h1>My Properties</h1>
+
+    <p>View and manage the properties connected to your host account.</p>
+
+    <!-- Display a success message after activating or deactivating a property -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    <!-- Display a message if the host has no properties -->
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info mt-4">
+            You do not have any properties yet.
+        </div>
+    }
+    else
+    {
+        <!-- Display each property -->
+        <div class="row g-4 mt-2">
+
+            @foreach (var property in Model)
+            {
+                <div class="col-md-6 col-lg-4">
+
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+
+                            <!-- Property title and details -->
+                            <h5 class="card-title">
+                                @property.Title
+                            </h5>
+
+                            <p class="card-text">
+                                @property.Description
+                            </p>
+
+                            <p>
+                                <strong>Address:</strong>
+                                @property.Address
+                            </p>
+
+                            <p>
+                                <strong>City:</strong>
+                                @(property.City ?? "Not specified")
+                            </p>
+
+                            <p>
+                                <strong>Property Type:</strong>
+                                @(property.PropertyType ?? "Not specified")
+                            </p>
+
+                            <!-- Display the price in South African rand -->
+                            <p>
+                                <strong>Price per night:</strong>
+                                R @property.PricePerNight.ToString("N2")
+                            </p>
+
+                            <!-- Show the property's current status -->
+                            @if (property.IsActive)
+                            {
+                                <span class="badge bg-success">
+                                    Active
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">
+                                    Inactive
+                                </span>
+                            }
+
+                            <!-- Form to activate or deactivate this property -->
+                            <form asp-controller="Host"
+                                  asp-action="TogglePropertyStatus"
+                                  method="post"
+                                  class="mt-3">
+
+                                <!-- Identify the property to update -->
+                                <input type="hidden"
+                                       name="id"
+                                       value="@property.PropertyId" />
+
+                                <!-- Submit the status change -->
+                                <button type="submit"
+                                        class="btn btn-outline-dark w-100">
+
+                                    @(property.IsActive
+                                        ? "Deactivate Property"
+                                        : "Activate Property")
+
+                                </button>
+
+                            </form>
+
+                        </div>
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+
+    <!-- Return to the Host Dashboard -->
+    <div class="mt-4">
+        <a asp-controller="Host"
+           asp-action="Index"
+           class="btn btn-outline-secondary">
+            Back to Host Dashboard
+        </a>
+    </div>
+
+</div>

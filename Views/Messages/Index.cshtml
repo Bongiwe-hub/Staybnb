@@ -1,0 +1,142 @@
+@model System.Collections.Generic.IEnumerable<Staybnb.Models.Message>
+@{
+    ViewData["Title"] = "My Inbox";
+
+    // Get the ID of the currently signed-in user.
+    var currentUserId = User.FindFirst(
+        System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+    // Group sent and received messages by conversation partner.
+    var conversations = Model
+        .GroupBy(m => m.SenderId == currentUserId
+            ? m.ReceiverId
+            : m.SenderId)
+        .Select(g => g.OrderByDescending(m => m.SentAt).First())
+        .OrderByDescending(m => m.SentAt)
+        .ToList();
+}
+
+<div class="container mt-4 mb-5">
+
+    <!-- Page heading -->
+    <h1>My Inbox</h1>
+
+    <p class="text-muted">
+        Read messages and continue your conversations on Staybnb.
+    </p>
+
+    <!-- Display an error if sending or opening a message fails. -->
+    @if (TempData["MessageError"] != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            @TempData["MessageError"]
+        </div>
+    }
+
+    <!-- Start a new conversation -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <strong>New Message</strong>
+        </div>
+
+        <div class="card-body">
+            <form asp-controller="Messages"
+                  asp-action="Conversation"
+                  method="get">
+
+                <div class="mb-3">
+                    <label for="userId" class="form-label">
+                        Recipient user ID
+                    </label>
+
+                    <input type="text"
+                           id="userId"
+                           name="userId"
+                           class="form-control"
+                           placeholder="Enter the registered user's ID"
+                           required />
+
+                    <small class="text-muted">
+                        Enter the ID of the registered user you want to contact.
+                    </small>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    Open Conversation
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Existing conversations -->
+    <h2 class="h4 mb-3">Your Conversations</h2>
+
+    @if (!conversations.Any())
+    {
+        <div class="alert alert-info" role="status">
+            You have no messages yet.
+            Use the New Message form above to open a conversation.
+        </div>
+    }
+    else
+    {
+        <div class="list-group">
+
+            @foreach (var message in conversations)
+            {
+                // Determine the other participant.
+                var otherUserId = message.SenderId == currentUserId
+                    ? message.ReceiverId
+                    : message.SenderId;
+
+                // Determine whether the latest message was received.
+                var isIncoming = message.ReceiverId == currentUserId;
+
+                // Count unread messages received from this participant.
+                var unreadCount = Model.Count(m =>
+                    m.SenderId == otherUserId &&
+                    m.ReceiverId == currentUserId &&
+                    !m.IsRead);
+
+                <a class="list-group-item list-group-item-action p-3"
+                   asp-controller="Messages"
+                   asp-action="Conversation"
+                   asp-route-userId="@otherUserId">
+
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+                        <strong>
+                            Conversation with user @otherUserId
+                        </strong>
+
+                        @if (unreadCount > 0)
+                        {
+                            <span class="badge bg-primary">
+                                @unreadCount unread
+                            </span>
+                        }
+                    </div>
+
+                    <p class="mb-1 mt-2">
+                        @if (isIncoming)
+                        {
+                            <strong>Received:</strong>
+                        }
+                        else
+                        {
+                            <strong>You:</strong>
+                        }
+
+                        @message.Content
+                    </p>
+
+                    <!-- Display the message date and time. -->
+                    <small class="text-muted">
+                        @message.SentAt.ToLocalTime().ToString("dd MMM yyyy, HH:mm")
+                    </small>
+                </a>
+            }
+        </div>
+    }
+
+</div>

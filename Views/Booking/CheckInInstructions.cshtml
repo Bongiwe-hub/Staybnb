@@ -1,0 +1,175 @@
+
+@model List<Staybnb.Models.Booking>
+
+@using Staybnb.Models
+@using System.Collections.Generic
+
+@{
+    ViewData["Title"] = "My Check-In Instructions";
+
+    // Get the check-in records supplied by BookingController.
+    var checkInProcesses =
+        ViewBag.CheckInProcesses as Dictionary<int, CheckInProcess>
+        ?? new Dictionary<int, CheckInProcess>();
+}
+
+<div class="container py-5">
+
+    <h1 class="fw-bold">My Check-In Instructions</h1>
+
+    <p class="text-muted">
+        View arrival instructions for your approved bookings.
+    </p>
+
+    @if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Error"]
+    </div>
+}
+
+    @* Show the appropriate message when no bookings are available. *@
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info mt-4">
+            You do not have any approved bookings yet.
+        </div>
+    }
+    else
+    {
+        <div class="row g-4 mt-3">
+
+            @* Display each approved booking. *@
+            @foreach (var booking in Model)
+            {
+                checkInProcesses.TryGetValue(
+                    booking.BookingId, out var process);
+
+                <div class="col-md-6 col-lg-4">
+
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+
+                            <h4 class="fw-bold">
+                                @(booking.Property?.Title ?? "Property")
+                            </h4>
+
+                            <p>
+                                <strong>Booking reference:</strong>
+                                #@booking.BookingId
+                            </p>
+
+                            <p>
+                                <strong>Check-in:</strong>
+                                @booking.CheckInDate.ToString("dd MMM yyyy")
+                            </p>
+
+                            <p>
+                                <strong>Check-out:</strong>
+                                @booking.CheckOutDate.ToString("dd MMM yyyy")
+                            </p>
+
+                            <hr />
+
+
+@* Guest document upload form for this approved booking. *@
+<h5>Guest Document</h5>
+
+<form asp-controller="GuestDocument"
+      asp-action="Upload"
+      method="post"
+      enctype="multipart/form-data">
+
+    @Html.AntiForgeryToken()
+
+    <input type="hidden"
+           name="bookingId"
+           value="@booking.BookingId" />
+
+    <div class="mb-3">
+        <label for="document-@booking.BookingId"
+               class="form-label">
+            Upload ID or passport (PDF, JPG, or PNG; maximum 5 MB)
+        </label>
+
+        <input type="file"
+               id="document-@booking.BookingId"
+               name="document"
+               class="form-control"
+               accept=".pdf,.jpg,.jpeg,.png"
+               required />
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Upload Document
+    </button>
+</form>
+
+<hr />
+
+
+                            @* Show instructions when the host has saved them. *@
+                            @if (process != null &&
+                                 !string.IsNullOrWhiteSpace(process.Instructions))
+                            {
+                                <h5>Arrival Instructions</h5>
+
+                                <div class="border rounded p-3 mb-3"
+                                     style="white-space: pre-line;">
+                                    @process.Instructions
+                                </div>
+
+                                @* Display the access code only to this booking's guest. *@
+                                @if (!string.IsNullOrWhiteSpace(process.AccessCode))
+                                {
+                                    <div class="alert alert-warning">
+                                        <strong>Access code:</strong>
+                                        @process.AccessCode
+                                    </div>
+                                }
+
+                                @if (process.IsCompleted)
+                                {
+                                    <span class="badge bg-success">
+                                        Check-in completed
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        Awaiting check-in
+                                    </span>
+                                }
+                            }
+                            else
+                            {
+                                <div class="alert alert-secondary">
+                                    Your host has not added check-in
+                                    instructions yet.
+                                </div>
+                            }
+
+                        </div>
+                    </div>
+
+                </div>
+            }
+        </div>
+    }
+
+    <div class="mt-4">
+        <a asp-controller="Booking"
+           asp-action="MyBookings"
+           class="btn btn-outline-primary">
+            Back to My Bookings
+        </a>
+    </div>
+
+</div>

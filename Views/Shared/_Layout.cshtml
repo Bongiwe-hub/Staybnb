@@ -1,0 +1,303 @@
+﻿
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>@ViewData["Title"] - Staybnb</title>
+
+    <meta name="theme-color" content="#183C35" />
+    <meta name="description"
+          content="Discover welcoming stays and find your place to belong with Staybnb." />
+
+    <script type="importmap"></script>
+
+    <!-- Bootstrap provides responsive navigation and layout components. -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <!-- Our custom styles give Staybnb its own visual identity. -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <link rel="stylesheet" href="~/Staybnb.styles.css" asp-append-version="true" />
+</head>
+
+<body class="staybnb-body">
+
+    <!-- =====================================================
+         MAIN NAVIGATION
+         Shared across all pages in the application.
+         ===================================================== -->
+    <header>
+        <nav class="navbar navbar-expand-lg staybnb-navbar">
+            <div class="container">
+
+               
+<!-- Brand -->
+<a class="navbar-brand staybnb-brand"
+   asp-controller="Home"
+   asp-action="Index"
+   aria-label="Staybnb home">
+
+    <!-- Apartment image logo -->
+    <img src="~/images/staybnb-icon.png"
+         alt=""
+         class="staybnb-logo" />
+
+    <!-- Website name -->
+    <span>staybnb<span class="brand-period">.</span></span>
+</a>
+
+
+                <!-- Mobile navigation toggle -->
+                <button class="navbar-toggler staybnb-toggler"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#staybnbNavigation"
+                        aria-controls="staybnbNavigation"
+                        aria-expanded="false"
+                        aria-label="Toggle navigation">
+
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse"
+                     id="staybnbNavigation">
+
+                    <!-- Main navigation links -->
+                    <ul class="navbar-nav mx-auto align-items-lg-center">
+
+                        <li class="nav-item">
+                            <a class="nav-link staybnb-nav-link"
+                               asp-controller="Home"
+                               asp-action="Index">
+                                Discover
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link staybnb-nav-link"
+                               asp-controller="Home"
+                               asp-action="Privacy">
+                                Privacy
+                            </a>
+                        </li>
+
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            @if (User.IsInRole("Guest"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link staybnb-nav-link"
+                                       asp-controller="HostApplication"
+                                       asp-action="Apply">
+                                        Become a Host
+                                    </a>
+                                </li>
+                            }
+
+                            @if (User.IsInRole("Host"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link staybnb-nav-link"
+                                       asp-controller="Host"
+                                       asp-action="Index">
+                                        Host Dashboard
+                                    </a>
+                                </li>
+                            }
+
+                            @if (User.IsInRole("Admin") ||
+                                 User.IsInRole("SuperAdmin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link staybnb-nav-link"
+                                       asp-controller="Admin"
+                                       asp-action="Index">
+                                        Admin
+                                    </a>
+                                </li>
+                            }
+
+                            @if (User.IsInRole("SuperAdmin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link staybnb-nav-link"
+                                       asp-controller="SuperAdmin"
+                                       asp-action="ManageUsers">
+                                        Manage Users
+                                    </a>
+                                </li>
+                            }
+                        }
+
+                      
+@if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+{
+    <li class="nav-item">
+        <a class="nav-link text-dark"
+           asp-controller="ActivityLog"
+           asp-action="Index">
+            Activity Logs
+        </a>
+    </li>
+}
+
+
+                        @* Show My Bookings only to logged-in users *@
+@if (User.Identity != null && User.Identity.IsAuthenticated)
+{
+    <li class="nav-item">
+        <a class="nav-link text-dark"
+           asp-controller="Booking"
+           asp-action="MyBookings">
+            My Bookings
+        </a>
+    </li>
+}
+
+@* Show this link only to authenticated users. *@
+@if (User.Identity != null && User.Identity.IsAuthenticated)
+{
+    <li class="nav-item">
+        <a class="nav-link"
+           asp-controller="Booking"
+           asp-action="MyCheckInInstructions">
+            My Check-In Instructions
+        </a>
+    </li>
+}
+
+                    </ul>
+
+                    <!-- Authentication actions -->
+                    <div class="navbar-actions d-flex align-items-lg-center gap-2">
+
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <span class="welcome-label">
+                                Hello, @(User.Identity.Name?.Split('@')[0])
+                            </span>
+
+                            <form asp-controller="Account"
+                                  asp-action="Logout"
+                                  method="post"
+                                  class="m-0">
+
+                                <button type="submit"
+                                        class="btn btn-staybnb-outline">
+                                    Sign out
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <a class="btn btn-staybnb-text"
+                               asp-controller="Account"
+                               asp-action="Login">
+                                Log in
+                            </a>
+
+                            <a class="btn btn-staybnb-primary"
+                               asp-controller="Account"
+                               asp-action="Register">
+                                Get started
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- =====================================================
+         PAGE CONTENT
+         Individual pages are displayed inside this area.
+         ===================================================== -->
+    <main id="main-content" role="main">
+        @RenderBody()
+    </main>
+
+    <!-- =====================================================
+         FOOTER
+         ===================================================== -->
+    <footer class="staybnb-footer">
+        <div class="container">
+
+            <div class="row gy-4 align-items-start">
+
+                <div class="col-md-6">
+                    <a class="footer-brand"
+                       asp-controller="Home"
+                       asp-action="Index">
+                        staybnb<span class="brand-period">.</span>
+                    </a>
+
+                    <p class="footer-description">
+                        Find your place to belong.
+                        Discover stays that make every journey memorable.
+                    </p>
+                </div>
+
+                <div class="col-md-3">
+                    <h2 class="footer-heading">Explore</h2>
+
+                    <a asp-controller="Home" asp-action="Index">
+                        Discover stays
+                    </a>
+
+                    <a asp-controller="Home" asp-action="Privacy">
+                        Privacy policy
+                    </a>
+                </div>
+
+                <div class="col-md-3">
+                    <h2 class="footer-heading">Your account</h2>
+
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <a asp-controller="HostApplication"
+                           asp-action="Apply">
+                            Host application
+                        </a>
+
+                        <a asp-controller="Account"
+                           asp-action="Logout">
+                            Sign out
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Login">
+                            Log in
+                        </a>
+
+                        <a asp-controller="Account" asp-action="Register">
+                            Create an account
+                        </a>
+                    }
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <span>
+                    &copy; @DateTime.Now.Year Staybnb. All rights reserved.
+                </span>
+
+                <span class="footer-tagline">
+                    Made for memorable stays.
+                </span>
+            </div>
+
+        </div>
+    </footer>
+
+    <!-- Bootstrap JavaScript enables the responsive mobile navigation. -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+</body>
+</html>

@@ -1,0 +1,423 @@
+
+/* =========================================================
+   STAYBNB — SHARED DESIGN SYSTEM
+   Boutique accommodation website
+   ========================================================= */
+
+:root {
+    --staybnb-green: #183C35;
+    --staybnb-green-hover: #24564B;
+    --staybnb-sand: #E7B77A;
+    --staybnb-cream: #FAF7F1;
+    --staybnb-white: #FFFFFF;
+    --staybnb-charcoal: #292D2B;
+    --staybnb-muted: #737873;
+    --staybnb-border: #E8E4DC;
+
+    --staybnb-radius: 14px;
+    --staybnb-shadow: 0 8px 28px rgba(24, 60, 53, 0.07);
+}
+
+/* =========================================================
+   GLOBAL PAGE STYLES
+   ========================================================= */
+
+html {
+    position: relative;
+    min-height: 100%;
+    font-size: 14px;
+    scroll-behavior: smooth;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+body.staybnb-body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    background-color: var(--staybnb-cream);
+    color: var(--staybnb-charcoal);
+    font-family: "Segoe UI", Arial, sans-serif;
+    line-height: 1.6;
+}
+
+#main-content {
+    flex: 1;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--staybnb-charcoal);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+}
+
+a {
+    color: var(--staybnb-green);
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: var(--staybnb-green-hover);
+}
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+
+.staybnb-navbar {
+    position: relative;
+    z-index: 100;
+    padding: 16px 0;
+    background-color: var(--staybnb-white);
+    border-bottom: 1px solid var(--staybnb-border);
+    box-shadow: 0 2px 12px rgba(24, 60, 53, 0.035);
+}
+
+/* Brand link and website name */
+.staybnb-brand {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 10px;
+    color: var(--staybnb-green) !important;
+    font-size: 1.65rem;
+    font-weight: 800;
+    letter-spacing: -0.06em;
+    line-height: 1.2;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+/* Original green S icon styling, retained for other uses */
+.brand-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 37px;
+    width: 37px;
+    height: 37px;
+    border-radius: 12px;
+    background-color: var(--staybnb-green);
+    color: var(--staybnb-white);
+    font-size: 1.2rem;
+    letter-spacing: 0;
+}
+
+/* Apartment image — fixed size so it cannot fill the page */
+img.staybnb-logo {
+    display: block !important;
+    flex: 0 0 37px !important;
+    width: 37px !important;
+    min-width: 37px !important;
+    max-width: 37px !important;
+    height: 37px !important;
+    min-height: 37px !important;
+    max-height: 37px !important;
+    object-fit: cover;
+    object-position: center;
+    border: 0;
+    border-radius: 12px;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+/* Brand punctuation */
+.brand-period {
+    color: var(--staybnb-sand);
+}
+
+.staybnb-nav-link {
+    margin: 0 5px;
+    padding: 10px 12px !important;
+    color: #555D57 !important;
+    font-size: 0.94rem;
+    font-weight: 600;
+}
+
+.staybnb-nav-link:hover,
+.staybnb-nav-link:focus {
+    color: var(--staybnb-green) !important;
+}
+
+.navbar-actions {
+    padding: 4px 0;
+}
+
+.welcome-label {
+    margin-right: 6px;
+    color: var(--staybnb-muted);
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.staybnb-toggler {
+    border-color: var(--staybnb-border);
+    padding: 8px 10px;
+}
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+.btn {
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-weight: 600;
+    transition: background-color 0.2s ease,
+                color 0.2s ease,
+                border-color 0.2s ease,
+                transform 0.2s ease;
+}
+
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem var(--staybnb-white),
+                0 0 0 0.25rem rgba(24, 60, 53, 0.45);
+}
+
+.btn-staybnb-primary {
+    background-color: var(--staybnb-green);
+    border: 1px solid var(--staybnb-green);
+    color: var(--staybnb-white);
+}
+
+.btn-staybnb-primary:hover,
+.btn-staybnb-primary:focus {
+    background-color: var(--staybnb-green-hover);
+    border-color: var(--staybnb-green-hover);
+    color: var(--staybnb-white);
+    transform: translateY(-1px);
+}
+
+.btn-staybnb-outline {
+    background-color: transparent;
+    border: 1px solid #D8DED9;
+    color: var(--staybnb-green);
+}
+
+.btn-staybnb-outline:hover,
+.btn-staybnb-outline:focus {
+    background-color: var(--staybnb-cream);
+    border-color: var(--staybnb-green);
+    color: var(--staybnb-green);
+}
+
+.btn-staybnb-text {
+    background-color: transparent;
+    border: 1px solid transparent;
+    color: var(--staybnb-green);
+}
+
+.btn-staybnb-text:hover,
+.btn-staybnb-text:focus {
+    background-color: var(--staybnb-cream);
+    color: var(--staybnb-green-hover);
+}
+
+/* =========================================================
+   FORMS
+   ========================================================= */
+
+.form-control,
+.form-select {
+    min-height: 45px;
+    border: 1px solid #DDDCD5;
+    border-radius: 10px;
+    background-color: var(--staybnb-white);
+    color: var(--staybnb-charcoal);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--staybnb-green);
+}
+
+.form-floating > .form-control-plaintext::placeholder,
+.form-floating > .form-control::placeholder {
+    color: var(--bs-secondary-color);
+    text-align: end;
+}
+
+.form-floating > .form-control-plaintext:focus::placeholder,
+.form-floating > .form-control:focus::placeholder {
+    text-align: start;
+}
+
+/* =========================================================
+   CARDS AND TABLES
+   ========================================================= */
+
+.card {
+    overflow: hidden;
+    border: 1px solid var(--staybnb-border);
+    border-radius: var(--staybnb-radius);
+    box-shadow: var(--staybnb-shadow);
+}
+
+.card-header {
+    padding: 18px 22px;
+    background-color: var(--staybnb-white);
+    border-bottom: 1px solid var(--staybnb-border);
+    font-weight: 700;
+}
+
+.card-body {
+    padding: 22px;
+}
+
+.table {
+    --bs-table-bg: transparent;
+}
+
+.table thead th {
+    background-color: #F3F0E9;
+    color: #525A54;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.table td,
+.table th {
+    padding: 13px 15px;
+    vertical-align: middle;
+}
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.staybnb-footer {
+    margin-top: 64px;
+    padding: 48px 0 20px;
+    background-color: #17352F;
+    color: #DCE5DF;
+}
+
+.footer-brand {
+    display: inline-block;
+    margin-bottom: 12px;
+    color: var(--staybnb-white);
+    font-size: 1.7rem;
+    font-weight: 800;
+    letter-spacing: -0.06em;
+    text-decoration: none;
+}
+
+.footer-description {
+    max-width: 350px;
+    color: #C0CDC5;
+    font-size: 0.94rem;
+}
+
+.footer-heading {
+    margin-bottom: 14px;
+    color: var(--staybnb-white);
+    font-size: 0.95rem;
+    letter-spacing: 0;
+}
+
+.staybnb-footer a:not(.footer-brand) {
+    display: block;
+    width: fit-content;
+    margin-bottom: 9px;
+    color: #C0CDC5;
+    font-size: 0.9rem;
+    text-decoration: none;
+}
+
+.staybnb-footer a:hover {
+    color: var(--staybnb-sand);
+}
+
+.footer-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 34px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    color: #C0CDC5;
+    font-size: 0.84rem;
+}
+
+.footer-tagline {
+    color: var(--staybnb-sand);
+}
+
+/* =========================================================
+   ACCESSIBILITY
+   ========================================================= */
+
+a:focus-visible,
+button:focus-visible {
+    outline: 3px solid var(--staybnb-sand);
+    outline-offset: 3px;
+}
+
+/* =========================================================
+   RESPONSIVE LAYOUT
+   ========================================================= */
+
+@media (max-width: 991.98px) {
+    .staybnb-navbar {
+        padding: 12px 0;
+    }
+
+    .staybnb-navbar .navbar-collapse {
+        padding-top: 15px;
+    }
+
+    .staybnb-nav-link {
+        margin: 2px 0;
+    }
+
+    .navbar-actions {
+        align-items: flex-start !important;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+
+    .welcome-label {
+        width: 100%;
+    }
+
+    .staybnb-footer {
+        margin-top: 40px;
+        padding-top: 36px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .staybnb-brand {
+        font-size: 1.45rem;
+    }
+
+    img.staybnb-logo {
+        flex-basis: 33px !important;
+        width: 33px !important;
+        min-width: 33px !important;
+        max-width: 33px !important;
+        height: 33px !important;
+        min-height: 33px !important;
+        max-height: 33px !important;
+    }
+
+    .brand-mark {
+        flex-basis: 33px;
+        width: 33px;
+        height: 33px;
+    }
+
+    .footer-bottom {
+        flex-direction: column;
+    }
+}

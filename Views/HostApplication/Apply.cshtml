@@ -1,0 +1,190 @@
+
+@model Staybnb.ViewModels.HostApplicationViewModel
+
+@{
+    ViewData["Title"] = "Apply to Become a Host";
+}
+
+<div class="container py-5">
+
+    <!-- Page heading -->
+    <div class="mb-4">
+        <h1>Apply to Become a Host</h1>
+
+        <p class="text-muted">
+            Share your property with guests on Staybnb.
+            Complete all required fields and upload at least one property image.
+        </p>
+    </div>
+
+    <!-- Display a success message after the application is submitted -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success" role="alert">
+            @TempData["Success"]
+        </div>
+    }
+
+    <!-- Display validation errors -->
+    <div asp-validation-summary="All"
+         class="text-danger mb-3"
+         role="alert">
+    </div>
+
+    <!-- Host application form -->
+    <form asp-controller="HostApplication"
+          asp-action="Apply"
+          method="post"
+          enctype="multipart/form-data">
+
+        @Html.AntiForgeryToken()
+
+        <!-- Property title -->
+        <div class="mb-3">
+            <label asp-for="Title" class="form-label">
+                Property Title *
+            </label>
+
+            <input asp-for="Title"
+                   class="form-control"
+                   placeholder="e.g. Modern Comfort Apartment" />
+
+            <span asp-validation-for="Title"
+                  class="text-danger">
+            </span>
+        </div>
+
+        <!-- Property description -->
+        <div class="mb-3">
+            <label asp-for="Description" class="form-label">
+                Property Description *
+            </label>
+
+            <textarea asp-for="Description"
+                      class="form-control"
+                      rows="5"
+                      placeholder="Describe the bedrooms, bathrooms, facilities and other features."></textarea>
+
+            <span asp-validation-for="Description"
+                  class="text-danger">
+            </span>
+        </div>
+
+        <!-- Price per night in South African rand -->
+        <div class="mb-3">
+            <label asp-for="PricePerNight" class="form-label">
+                Price Per Night (South African rand) *
+            </label>
+
+            <div class="input-group">
+                <span class="input-group-text">R</span>
+
+                <input asp-for="PricePerNight"
+                       type="number"
+                       step="0.01"
+                       min="0.01"
+                       class="form-control"
+                       placeholder="850.00" />
+            </div>
+
+            <div class="form-text">
+                Enter the price per night in South African rand (ZAR).
+                For example, enter 850.00 for R 850.00.
+            </div>
+
+            <span asp-validation-for="PricePerNight"
+                  class="text-danger">
+            </span>
+        </div>
+
+        <!-- Property address -->
+        <div class="mb-3">
+            <label asp-for="Address" class="form-label">
+                Property Address *
+            </label>
+
+            <input asp-for="Address"
+                   class="form-control"
+                   placeholder="Enter the property address" />
+
+            <span asp-validation-for="Address"
+                  class="text-danger">
+            </span>
+        </div>
+
+        <!-- City -->
+        <div class="mb-3">
+            <label asp-for="City" class="form-label">
+                City *
+            </label>
+
+            <input asp-for="City"
+                   class="form-control"
+                   placeholder="e.g. Johannesburg" />
+
+            <span asp-validation-for="City"
+                  class="text-danger">
+            </span>
+        </div>
+
+        <!-- Property type -->
+        <div class="mb-3">
+            <label asp-for="PropertyType" class="form-label">
+                Property Type *
+            </label>
+
+            <select asp-for="PropertyType" class="form-select">
+                <option value="">-- Select Property Type --</option>
+                <option value="Apartment">Apartment</option>
+                <option value="House">House</option>
+                <option value="Guesthouse">Guesthouse</option>
+                <option value="Cottage">Cottage</option>
+                <option value="Room">Room</option>
+                <option value="Villa">Villa</option>
+            </select>
+
+            <span asp-validation-for="PropertyType"
+                  class="text-danger">
+            </span>
+        </div>
+
+        <!-- Property image upload -->
+        <div class="mb-4">
+            <label asp-for="PropertyImage" class="form-label">
+                Property Image *
+            </label>
+
+            <input asp-for="PropertyImage"
+                   type="file"
+                   accept=".jpg,.jpeg,.png,.webp"
+                   class="form-control" />
+
+            <div class="form-text">
+                Upload at least one image. Accepted formats:
+                JPG, JPEG, PNG or WEBP. Maximum file size: 5 MB.
+            </div>
+
+            <span asp-validation-for="PropertyImage"
+                  class="text-danger">
+            </span>
+        </div>
+
+        <!-- Submit the application -->
+        <button type="submit" class="btn btn-success">
+            Submit Host Application
+        </button>
+
+        <!-- Return to the home page -->
+        <a asp-controller="Home"
+           asp-action="Index"
+           class="btn btn-outline-secondary ms-2">
+            Cancel
+        </a>
+
+    </form>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

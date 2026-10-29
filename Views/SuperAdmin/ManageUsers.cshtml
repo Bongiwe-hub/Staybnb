@@ -1,0 +1,206 @@
+@model IEnumerable<Staybnb.ViewModels.UserManagementViewModel>
+
+@{
+    ViewData["Title"] = "Manage Users";
+}
+
+<div class="container-fluid mt-4">
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show"
+         role="alert">
+
+        @TempData["Success"]
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+        </button>
+
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show"
+         role="alert">
+
+        @TempData["Error"]
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+        </button>
+
+    </div>
+}
+
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Manage Users</h2>
+            <p class="text-muted mb-0">
+                View all registered Staybnb users and their roles.
+            </p>
+        </div>
+
+        <a asp-controller="SuperAdmin"
+           asp-action="Index"
+           class="btn btn-outline-secondary">
+            ← Back to Dashboard
+        </a>
+    </div>
+
+
+    <!-- Users Card -->
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-bold">
+                Registered Users
+            </h5>
+        </div>
+
+        <div class="card-body">
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle">
+
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Full Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @{
+                                int counter = 1;
+                            }
+
+                            @foreach (var user in Model)
+                            {
+                                <tr>
+
+                                    <td>
+                                        @counter
+                                    </td>
+
+                                    <td>
+                                        <strong>
+                                            @user.FullName
+                                        </strong>
+                                    </td>
+
+                                    <td>
+                                        @user.Email
+                                    </td>
+
+                                    <td>
+
+                                        @if (user.Role == "SuperAdmin")
+                                        {
+                                            <span class="badge bg-danger">
+                                                SuperAdmin
+                                            </span>
+                                        }
+                                        else if (user.Role == "Admin")
+                                        {
+                                            <span class="badge bg-primary">
+                                                Admin
+                                            </span>
+                                        }
+                                        else if (user.Role == "Host")
+                                        {
+                                            <span class="badge bg-success">
+                                                Host
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                @user.Role
+                                            </span>
+                                        }
+
+                                    </td>
+
+                    <td>
+
+    @if (user.Role == "Guest")
+    {
+        <form asp-controller="SuperAdmin"
+              asp-action="PromoteToAdmin"
+              method="post"
+              class="d-inline">
+
+            @Html.AntiForgeryToken()
+
+            <input type="hidden"
+                   name="userId"
+                   value="@user.UserId" />
+
+            <button type="submit"
+                    class="btn btn-sm btn-outline-primary"
+                    onclick="return confirm('Are you sure you want to promote this Guest to Admin?');">
+                Promote to Admin
+            </button>
+
+        </form>
+    }
+    else if (user.Role == "SuperAdmin")
+    {
+        <span class="text-muted">
+            Protected
+        </span>
+    }
+    else
+    {
+        <span class="text-muted">
+            No action
+        </span>
+    }
+
+</td>
+
+              
+
+                                </tr>
+
+                                counter++;
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+
+                    <h5 class="text-muted">
+                        No users found
+                    </h5>
+
+                    <p class="text-muted">
+                        There are currently no registered users.
+                    </p>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>

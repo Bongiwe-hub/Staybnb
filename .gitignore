@@ -1,0 +1,28 @@
+# .NET build output
+bin/
+obj/
+
+# Local configuration and secrets
+appsettings.Development.json
+.env
+.env.*
+
+# User-uploaded private documents
+PrivateUploads/
+
+# IDE and local files
+.vs/
+.vscode/
+*.user
+*.suo
+
+appsettings.json
+staybnbDb.sql
+
+# Keep reports and user-uploaded files private
+*.pdf
+wwwroot/uploads/
+
+# Private reports and user uploads
+*.pdf
+wwwroot/uploads/

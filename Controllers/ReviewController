@@ -1,0 +1,186 @@
+
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Staybnb.Data;
+using Staybnb.Models;
+using Staybnb.ViewModels;
+
+namespace Staybnb.Controllers
+{
+    // Only users with the Guest role can create reviews.
+    [Authorize(Roles = "Guest")]
+    public class ReviewController : Controller
+    {
+        private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
+
+        public ReviewController(
+            ApplicationDbContext context,
+            UserManager<ApplicationUser> userManager)
+        {
+            _context = context;
+            _userManager = userManager;
+        }
+
+        // GET: /Review/Create?bookingId=1
+        // Display the review form for an eligible booking.
+        [HttpGet]
+        public async Task<IActionResult> Create(int bookingId)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Challenge();
+            }
+
+            // The booking must belong to this guest, be approved,
+            // and have a checkout date that has passed.
+            var booking = await _context.Bookings
+                .AsNoTracking()
+                .FirstOrDefaultAsync(b =>
+                    b.BookingId == bookingId &&
+                    b.GuestId == userId &&
+                    b.Status == "Approved" &&
+                    b.CheckOutDate.Date <= DateTime.Today);
+
+            if (booking == null)
+            {
+                TempData["Error"] =
+                    "You can only review your own approved booking after checkout.";
+
+                return RedirectToAction("MyBookings", "Booking");
+            }
+
+            // Prevent a second review for the same booking.
+            bool alreadyReviewed = await _context.Reviews
+                .AnyAsync(r => r.BookingId == booking.BookingId);
+
+            if (alreadyReviewed)
+            {
+                TempData["Error"] =
+                    "You have already submitted a review for this booking.";
+
+                return RedirectToAction(
+                    "Details",
+                    "Home",
+                    new { id = booking.PropertyId });
+            }
+
+            var model = new CreateReviewViewModel
+            {
+                BookingId = booking.BookingId
+            };
+
+            return View(model);
+        }
+
+        // POST: /Review/Create
+        // Validate and save the submitted guest review.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(
+            CreateReviewViewModel model)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Challenge();
+            }
+
+            // Always recheck eligibility on the server.
+            // Do not trust the booking ID sent by the browser.
+            var booking = await _context.Bookings
+                .FirstOrDefaultAsync(b =>
+                    b.BookingId == model.BookingId &&
+                    b.GuestId == userId &&
+                    b.Status == "Approved" &&
+                    b.CheckOutDate.Date <= DateTime.Today);
+
+            if (booking == null)
+            {
+                TempData["Error"] =
+                    "This booking is not eligible for a review.";
+
+                return RedirectToAction("MyBookings", "Booking");
+            }
+
+            // Check for an existing review before saving.
+            bool alreadyReviewed = await _context.Reviews
+                .AnyAsync(r => r.BookingId == booking.BookingId);
+
+            if (alreadyReviewed)
+            {
+                TempData["Error"] =
+                    "You have already submitted a review for this booking.";
+
+                return RedirectToAction(
+                    "Details",
+                    "Home",
+                    new { id = booking.PropertyId });
+            }
+
+            // Check rating range and comment length explicitly.
+            if (model.Rating < 1 || model.Rating > 5)
+            {
+                ModelState.AddModelError(
+                    nameof(model.Rating),
+                    "Please select a rating from 1 to 5.");
+            }
+
+            if (model.Comment != null &&
+                model.Comment.Length > 1000)
+            {
+                ModelState.AddModelError(
+                    nameof(model.Comment),
+                    "The review comment cannot exceed 1000 characters.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var review = new Review
+            {
+                GuestId = userId,
+                PropertyId = booking.PropertyId,
+                BookingId = booking.BookingId,
+                Rating = model.Rating,
+                Comment = model.Comment?.Trim(),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Reviews.Add(review);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                // A database constraint may reject a duplicate review.
+                // Do not expose database details to the user.
+                ModelState.AddModelError(
+                    string.Empty,
+                    "The review could not be saved. Please try again.");
+
+                return View(model);
+            }
+
+            TempData["Success"] =
+                "Thank you! Your review has been submitted.";
+
+            return RedirectToAction(
+                "Details",
+                "Home",
+                new { id = booking.PropertyId });
+        }
+    }
+}

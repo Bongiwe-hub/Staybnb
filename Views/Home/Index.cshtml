@@ -1,0 +1,132 @@
+﻿
+@model List<Staybnb.Models.Property>
+
+@{
+    ViewData["Title"] = "Discover Stays";
+
+    var propertyImages =
+        ViewBag.PropertyImages as Dictionary<int, string>;
+}
+
+<div class="container py-5">
+
+    <!-- Welcome section -->
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold">Find Your Perfect Stay</h1>
+
+        <p class="lead text-muted">
+            Discover comfortable places to stay for your next journey.
+        </p>
+    </div>
+
+    <!-- Property listings heading -->
+    <div class="mb-4">
+        <h2>Discover Stays</h2>
+
+        <p class="text-muted">
+            Explore available properties on Staybnb.
+            All prices are displayed in South African rand.
+        </p>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">
+            <h5>No properties available yet</h5>
+
+            <p class="mb-0">
+                Please check back later to discover available stays.
+            </p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+
+            @foreach (var property in Model)
+            {
+                var imageUrl = propertyImages != null
+                    && propertyImages.TryGetValue(
+                        property.PropertyId, out var savedImage)
+                    ? savedImage
+                    : null;
+
+                <div class="col-md-6 col-lg-4">
+
+                    <div class="card h-100 shadow-sm">
+
+                        <!-- Property photo -->
+                        @if (!string.IsNullOrWhiteSpace(imageUrl))
+                        {
+                            <img src="@imageUrl"
+                                 class="card-img-top"
+                                 alt="@property.Title"
+                                 style="height: 220px; object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <div class="bg-light d-flex align-items-center justify-content-center text-muted"
+                                 style="height: 220px;">
+                                <div class="text-center">
+                                    <div class="fs-1">⌂</div>
+                                    <span>No photo available</span>
+                                </div>
+                            </div>
+                        }
+
+                        <div class="card-body d-flex flex-column">
+
+                            <!-- Property title -->
+                            <h5 class="card-title fw-bold">
+                                @property.Title
+                            </h5>
+
+                            <!-- Description -->
+                            <p class="card-text text-muted">
+                                @property.Description
+                            </p>
+
+                            <!-- Location -->
+                            <p class="mb-2">
+                                <strong>City:</strong>
+                                @(property.City ?? "Not specified")
+                            </p>
+
+                            <p class="mb-2">
+                                <strong>Address:</strong>
+                                @property.Address
+                            </p>
+
+                            <!-- Property type -->
+                            <p class="mb-3">
+                                <strong>Property Type:</strong>
+                                @(property.PropertyType ?? "Not specified")
+                            </p>
+
+                            <!-- Price in South African rand -->
+                            <div class="mt-auto">
+                                <p class="fs-5 fw-bold mb-0">
+                                    R @property.PricePerNight.ToString("N2")
+                                </p>
+
+                                <small class="text-muted">
+                                    per night
+                                </small>
+                                 <a asp-controller="Home"
+       asp-action="Details"
+       asp-route-id="@property.PropertyId"
+       class="btn btn-primary w-100">
+        View Details
+    </a>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+
+</div>
